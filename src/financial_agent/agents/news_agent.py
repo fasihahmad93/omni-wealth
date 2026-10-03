@@ -14,7 +14,16 @@ class NewsAgent:
         items = [NewsItem(**item) for item in raw_items]
         positive = sum(item.impact == "positive" for item in items)
         negative = sum(item.impact == "negative" for item in items)
-        sentiment = "positive" if positive > negative else "negative" if negative > positive else "neutral"
+        known_neutral = any(item.impact == "neutral" for item in items)
+        sentiment = (
+            "positive"
+            if positive > negative
+            else "negative"
+            if negative > positive
+            else "neutral"
+            if known_neutral or positive + negative > 0
+            else "not available"
+        )
         result = NewsAnalysis(
             ticker=ticker,
             sentiment=sentiment,

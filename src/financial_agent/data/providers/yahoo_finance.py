@@ -131,3 +131,30 @@ class YahooFinanceMarketDataProvider(MarketDataProvider):
         )
 
         return price
+
+    def get_valuation_metrics(self, ticker: str) -> dict[str, float | None]:
+        logger.info("Fetching Yahoo Finance valuation metrics ticker=%s", ticker)
+        if not ticker or not ticker.strip():
+            raise ValueError("ticker cannot be empty")
+
+        info = yf.Ticker(ticker.strip().upper()).info or {}
+
+        def as_float(value) -> float | None:
+            try:
+                return float(value) if value is not None else None
+            except (TypeError, ValueError):
+                return None
+
+        metrics = {
+            "pe": as_float(info.get("trailingPE")),
+            "forward_pe": as_float(info.get("forwardPE")),
+            "ev_ebitda": as_float(info.get("enterpriseToEbitda")),
+            "beta": as_float(info.get("beta")),
+            "sector_pe": as_float(info.get("sectorTrailingPE")),
+        }
+        logger.info(
+            "Yahoo Finance valuation metrics fetched ticker=%s available=%s",
+            ticker,
+            [name for name, value in metrics.items() if value is not None],
+        )
+        return metrics

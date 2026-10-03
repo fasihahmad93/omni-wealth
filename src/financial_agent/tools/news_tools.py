@@ -138,7 +138,7 @@ class NewsTools:
                         "title": str(title),
                         "date": date,
                         "source": str(source),
-                        "impact": article.get("impact") or content.get("impact") or "neutral",
+                        "impact": article.get("impact") or content.get("impact") or "not available",
                         "summary": summary,
                         "url": str(canonical_url) if canonical_url else None,
                     }

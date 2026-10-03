@@ -68,3 +68,42 @@ class DemoMarketDataProvider(MarketDataProvider):
         history = self.get_history(ticker)
 
         return float(history["close"].iloc[-1])
+
+    def get_valuation_metrics(self, ticker: str) -> dict[str, float | None]:
+        logger.info("Fetching demo valuation metrics ticker=%s", ticker)
+        return {
+            "pe": 22.0,
+            "forward_pe": 19.0,
+            "ev_ebitda": 14.0,
+            "beta": 1.05,
+            "sector_pe": 30.0,
+        }
+
+
+class DemoFundamentalDataProvider:
+    def get_fundamentals(self, ticker: str) -> dict[str, float | None]:
+        logger.info("Fetching demo fundamentals ticker=%s", ticker)
+        return {
+            "revenue_growth": 0.12,
+            "earnings_growth": 0.15,
+            "roe": 0.18,
+            "roce": 0.16,
+            "debt_to_equity": 0.35,
+            "operating_cash_flow": 1_000_000_000.0,
+            "free_cash_flow": 500_000_000.0,
+            "net_margin": 0.10,
+        }
+
+
+class DemoNewsProvider:
+    def search(self, ticker: str) -> list[dict]:
+        logger.info("Fetching demo news ticker=%s", ticker)
+        return [
+            {
+                "title": f"{ticker} reports steady quarterly performance",
+                "date": "Demo data",
+                "source": "Demo News",
+                "impact": "positive",
+                "summary": "A deterministic sample headline for offline testing.",
+            }
+        ]

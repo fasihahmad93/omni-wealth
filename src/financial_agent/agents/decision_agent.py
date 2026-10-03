@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Mapping
+
 from financial_agent.schemas.decision import InvestmentDecision
 
 logger = logging.getLogger(__name__)
@@ -14,37 +16,47 @@ class DecisionAgent:
         reasons = []
         risks = []
 
-        if market.trend == "bullish":
+        market_trend = self._value(market, "trend")
+        if market_trend == "bullish":
             buy_signals += 1
-            reasons.append("Price is above the 200-day moving average.")
-        else:
+            reasons.append("Recent price returns indicate a bullish market trend.")
+        elif market_trend == "bearish":
             sell_signals += 1
-            risks.append("Price is below the 200-day moving average.")
+            risks.append("Recent price returns indicate a bearish market trend.")
+        else:
+            reasons.append("Market trend is mixed or unavailable; no directional signal counted.")
 
-        if fundamental.business_quality == "strong":
+        business_quality = self._value(fundamental, "business_quality")
+        if business_quality == "strong":
             buy_signals += 1
             reasons.append("Fundamental quality is classified as strong.")
-        elif fundamental.business_quality == "moderate":
+        elif business_quality == "moderate":
             reasons.append("Fundamental quality is classified as moderate.")
-        elif fundamental.business_quality == "not available":
+        elif business_quality == "not available":
             reasons.append("Fundamental quality could not be assessed because metrics are unavailable.")
-        else:
+        elif business_quality == "weak":
             sell_signals += 1
             risks.append("Fundamental quality is classified as weak.")
 
-        if news.sentiment == "positive":
+        sentiment = self._value(news, "sentiment")
+        if sentiment == "positive":
             buy_signals += 1
-            reasons.append("Recent demo news sentiment is positive.")
-        elif news.sentiment == "negative":
+            reasons.append("Recent news sentiment is positive.")
+        elif sentiment == "negative":
             sell_signals += 1
             risks.append("Recent news sentiment is negative.")
+        elif sentiment == "not available":
+            reasons.append("News sentiment is unavailable; no directional signal counted.")
 
-        if valuation.valuation_view == "reasonable":
+        valuation_view = self._value(valuation, "valuation_view")
+        if valuation_view == "reasonable":
             buy_signals += 1
             reasons.append("Valuation is classified as reasonable.")
-        elif valuation.valuation_view == "expensive":
+        elif valuation_view == "expensive":
             sell_signals += 1
             risks.append("Valuation is classified as expensive.")
+        elif valuation_view in {"elevated", "not available"}:
+            reasons.append("Valuation is elevated or unavailable; no directional signal counted.")
 
         decision = "BUY" if buy_signals >= 3 and buy_signals > sell_signals else "SELL" if sell_signals >= 3 and sell_signals > buy_signals else "HOLD"
         thesis = f"Decision is based on {buy_signals} positive and {sell_signals} negative analytical signals."
@@ -65,3 +77,9 @@ class DecisionAgent:
             result.risks,
         )
         return result
+
+    @staticmethod
+    def _value(component, field: str):
+        if isinstance(component, Mapping):
+            return component.get(field)
+        return getattr(component, field, None)

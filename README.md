@@ -37,7 +37,7 @@ BUY / HOLD / SELL
 
 ## Important
 
-This repository is an educational/research framework, not financial advice or an automated trading system. The initial data providers are deliberately simple offline/demo providers so the system can be developed and tested without API credentials.
+This repository is an educational/research framework, not financial advice or an automated trading system. The CLI uses Yahoo Finance and Google News RSS and requires a network connection. Demo providers power the offline orchestrator and tests. Yahoo may omit individual metrics; missing values are reported as unavailable.
 
 ## Run
 
@@ -45,8 +45,8 @@ This repository is an educational/research framework, not financial advice or an
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
-python main.py RELIANCE
+python main.py RELIANCE.NS
 pytest -q
 ```
 
-The default demo runs without an LLM by using deterministic demo agents. The interfaces are designed so an Ollama/other LLM implementation can be plugged in later.
+The CLI defaults to `ASIANPAINT.NS` and prints market, fundamental, news, valuation/risk, and BUY/HOLD/SELL analyses. Pass a Yahoo Finance ticker as the first argument. The demo orchestrator runs without network access. The interfaces are designed so an Ollama/other LLM implementation can be plugged in later.

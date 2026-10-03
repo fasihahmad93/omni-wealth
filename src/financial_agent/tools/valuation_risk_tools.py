@@ -12,17 +12,26 @@ class ValuationRiskTools:
         logger.info("Tool get_valuation_risk ticker=%s", ticker)
         df = self.market_provider.get_history(ticker)
         prices = df["close"]
-        current_price = float(prices.iloc[-1])
-        eps = current_price / 28.0
-        pe = current_price / eps
-        forward_eps = eps * 1.12
-        forward_pe = current_price / forward_eps
+        try:
+            metrics = self.market_provider.get_valuation_metrics(ticker)
+        except Exception:
+            logger.exception("Valuation metrics unavailable ticker=%s", ticker)
+            metrics = {}
+
+        pe = metrics.get("pe")
+        forward_pe = metrics.get("forward_pe")
+        sector_pe = metrics.get("sector_pe")
+        valuation_view = (
+            classify_valuation(pe, forward_pe, sector_pe)
+            if pe is not None and forward_pe is not None and sector_pe is not None
+            else "not available"
+        )
         return {
             "ticker": ticker,
             "pe": pe,
             "forward_pe": forward_pe,
-            "ev_ebitda": 18.0,
-            "beta": 1.05,
+            "ev_ebitda": metrics.get("ev_ebitda"),
+            "beta": metrics.get("beta"),
             "max_drawdown": calculate_drawdown(prices),
-            "valuation_view": classify_valuation(pe, forward_pe),
+            "valuation_view": valuation_view,
         }
