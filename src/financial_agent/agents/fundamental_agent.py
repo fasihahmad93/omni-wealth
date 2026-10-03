@@ -13,11 +13,42 @@ class FundamentalAgent:
         logger.info("FundamentalAgent analyzing ticker=%s", ticker)
         raw = self.tools.get_fundamentals(ticker)
         snapshot = FundamentalSnapshot(ticker=ticker, **raw)
-        growth = classify_growth(snapshot.revenue_growth, snapshot.earnings_growth)
-        profitability = classify_profitability(snapshot.roe, snapshot.roce)
-        balance = classify_balance_sheet(snapshot.debt_to_equity)
-        cash_flow = "strong" if snapshot.free_cash_flow > 0 and snapshot.operating_cash_flow > 0 else "weak"
-        quality = "strong" if growth == "strong" and profitability == "strong" and balance == "healthy" else "moderate"
+        growth = (
+            classify_growth(snapshot.revenue_growth, snapshot.earnings_growth)
+            if snapshot.revenue_growth is not None and snapshot.earnings_growth is not None
+            else "not available"
+        )
+        profitability = (
+            classify_profitability(snapshot.roe, snapshot.roce)
+            if snapshot.roe is not None and snapshot.roce is not None
+            else "not available"
+        )
+        balance = (
+            classify_balance_sheet(snapshot.debt_to_equity)
+            if snapshot.debt_to_equity is not None
+            else "not available"
+        )
+        cash_flow = (
+            "not available"
+            if snapshot.free_cash_flow is None or snapshot.operating_cash_flow is None
+            else "strong"
+            if snapshot.free_cash_flow > 0 and snapshot.operating_cash_flow > 0
+            else "weak"
+        )
+        quality = (
+            "not available"
+            if "not available" in {growth, profitability, balance}
+            else "strong"
+            if growth == "strong" and profitability == "strong" and balance == "healthy"
+            else "moderate"
+        )
+        strengths = []
+        if snapshot.revenue_growth is not None and snapshot.revenue_growth > 0:
+            strengths.append("Positive revenue growth")
+        if snapshot.earnings_growth is not None and snapshot.earnings_growth > 0:
+            strengths.append("Positive earnings growth")
+        if snapshot.free_cash_flow is not None and snapshot.free_cash_flow > 0:
+            strengths.append("Positive free cash flow")
         result = FundamentalAnalysis(
             ticker=ticker,
             business_quality=quality,
@@ -26,7 +57,7 @@ class FundamentalAgent:
             balance_sheet=balance,
             cash_flow=cash_flow,
             snapshot=snapshot,
-            strengths=["Positive earnings growth", "Positive free cash flow"],
+            strengths=strengths,
             risks=["Growth and margins can change with the economic cycle"],
         )
         logger.info(

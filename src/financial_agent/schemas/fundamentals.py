@@ -2,14 +2,14 @@ from pydantic import BaseModel
 
 class FundamentalSnapshot(BaseModel):
     ticker: str
-    revenue_growth: float
-    earnings_growth: float
-    roe: float
-    roce: float
-    debt_to_equity: float
-    operating_cash_flow: float
-    free_cash_flow: float
-    net_margin: float
+    revenue_growth: float | None = None
+    earnings_growth: float | None = None
+    roe: float | None = None
+    roce: float | None = None
+    debt_to_equity: float | None = None
+    operating_cash_flow: float | None = None
+    free_cash_flow: float | None = None
+    net_margin: float | None = None
 
 class FundamentalAnalysis(BaseModel):
     ticker: str

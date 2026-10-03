@@ -26,6 +26,8 @@ class DecisionAgent:
             reasons.append("Fundamental quality is classified as strong.")
         elif fundamental.business_quality == "moderate":
             reasons.append("Fundamental quality is classified as moderate.")
+        elif fundamental.business_quality == "not available":
+            reasons.append("Fundamental quality could not be assessed because metrics are unavailable.")
         else:
             sell_signals += 1
             risks.append("Fundamental quality is classified as weak.")
