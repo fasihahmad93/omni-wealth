@@ -29,3 +29,7 @@ class MarketDataProvider(ABC):
             ticker,
         )
         raise NotImplementedError
+
+    def get_valuation_metrics(self, ticker: str) -> dict[str, float | None]:
+        logger.info("Requesting valuation metrics ticker=%s", ticker)
+        raise NotImplementedError

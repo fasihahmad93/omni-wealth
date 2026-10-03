@@ -7,6 +7,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 from financial_agent.agents.market_agent import MarketAgent
 from financial_agent.agents.fundamental_agent import FundamentalAgent
 from financial_agent.agents.news_agent import NewsAgent
+from financial_agent.agents.valuation_risk_agent import ValuationRiskAgent
+from financial_agent.agents.decision_agent import DecisionAgent
 from financial_agent.config.settings import setup_logging
 from financial_agent.data.providers.factory import (
     create_market_data_provider,
@@ -14,6 +16,7 @@ from financial_agent.data.providers.factory import (
 from financial_agent.tools.market_tools import MarketTools
 from financial_agent.tools.fundamental_tools import FundamentalTools
 from financial_agent.tools.news_tools import NewsTools
+from financial_agent.tools.valuation_risk_tools import ValuationRiskTools
 
 
 def main():
@@ -42,15 +45,26 @@ def main():
     fundamental_agent = FundamentalAgent(fundamental_tools)
     news_tools = NewsTools(provider)
     news_agent = NewsAgent(news_tools)
+    valuation_tools = ValuationRiskTools(provider)
+    valuation_agent = ValuationRiskAgent(valuation_tools)
+    decision_agent = DecisionAgent()
 
     market_result = market_agent.analyze(ticker)
     fundamental_result = fundamental_agent.analyze(ticker)
     news_result = news_agent.analyze(ticker)
+    valuation_result = valuation_agent.analyze(ticker)
+    decision_result = decision_agent.decide(
+        ticker,
+        market_result,
+        fundamental_result,
+        news_result,
+        valuation_result,
+    )
 
     print("\nMarket Analysis")
     print("=" * 50)
 
-    for key, value in market_result.items():
+    for key, value in market_result.model_dump().items():
         print(f"{key}: {value}")
 
     print("\nFundamental Analysis")
@@ -83,9 +97,29 @@ def main():
             if article.url:
                 print(f"   url: {article.url}")
 
+    print("\nValuation and Risk Analysis")
+    print("=" * 50)
+    for key, value in valuation_result.model_dump().items():
+        displayed_value = "Not available" if value is None else value
+        print(f"{key}: {displayed_value}")
+
+    print("\nInvestment Decision")
+    print("=" * 50)
+    print(f"ticker: {decision_result.ticker}")
+    print(f"decision: {decision_result.decision}")
+    print(f"thesis: {decision_result.thesis}")
+    print(f"time horizon: {decision_result.time_horizon}")
+    print("key reasons:")
+    for reason in decision_result.key_reasons:
+        print(f"  - {reason}")
+    print("risks:")
+    for risk in decision_result.risks:
+        print(f"  - {risk}")
+
     logger.info(
-        "Financial agent completed ticker=%s",
+        "Financial agent completed ticker=%s decision=%s",
         ticker,
+        decision_result.decision,
     )
 
 
