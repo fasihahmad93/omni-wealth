@@ -6,12 +6,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from financial_agent.agents.market_agent import MarketAgent
 from financial_agent.agents.fundamental_agent import FundamentalAgent
+from financial_agent.agents.news_agent import NewsAgent
 from financial_agent.config.settings import setup_logging
 from financial_agent.data.providers.factory import (
     create_market_data_provider,
 )
 from financial_agent.tools.market_tools import MarketTools
 from financial_agent.tools.fundamental_tools import FundamentalTools
+from financial_agent.tools.news_tools import NewsTools
 
 
 def main():
@@ -38,9 +40,12 @@ def main():
     market_agent = MarketAgent(market_tools)
     fundamental_tools = FundamentalTools(provider)
     fundamental_agent = FundamentalAgent(fundamental_tools)
+    news_tools = NewsTools(provider)
+    news_agent = NewsAgent(news_tools)
 
     market_result = market_agent.analyze(ticker)
     fundamental_result = fundamental_agent.analyze(ticker)
+    news_result = news_agent.analyze(ticker)
 
     print("\nMarket Analysis")
     print("=" * 50)
@@ -61,6 +66,22 @@ def main():
         else:
             displayed_value = "Not available" if value is None else value
             print(f"{key}: {displayed_value}")
+
+    print("\nNews Analysis")
+    print("=" * 50)
+    print(f"ticker: {news_result.ticker}")
+    print(f"sentiment: {news_result.sentiment}")
+    if not news_result.items:
+        print("No recent news articles found.")
+    else:
+        for index, article in enumerate(news_result.items, start=1):
+            print(f"\n{index}. {article.title}")
+            print(f"   date: {article.date}")
+            print(f"   source: {article.source}")
+            print(f"   impact: {article.impact}")
+            print(f"   summary: {article.summary}")
+            if article.url:
+                print(f"   url: {article.url}")
 
     logger.info(
         "Financial agent completed ticker=%s",

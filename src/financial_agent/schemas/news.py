@@ -6,6 +6,7 @@ class NewsItem(BaseModel):
     source: str
     impact: str
     summary: str
+    url: str | None = None
 
 class NewsAnalysis(BaseModel):
     ticker: str
